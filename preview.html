@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Rockstar 2FA Embed Automático</title>
+  <script src="https://cdn.jsdelivr.net/npm/otplib@12.0.1/otplib-browser.min.js"></script>
+  <style>
+    body {
+      background: #121217;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .rockstar-2fa-form {
+      background: #1f1f2a;
+      color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      width: 350px;
+      text-align: center;
+    }
+
+    .rockstar-2fa-form input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: none;
+    }
+
+    .rockstar-2fa-form button {
+      background: #5865f2;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      font-weight: bold;
+    }
+
+    .rockstar-2fa-form .warning {
+      font-size: 12px;
+      color: #ffcc00;
+      margin-top: 10px;
+    }
+
+    /* Embed estilo Discord */
+    .embed {
+      background: #2f3136;
+      border-left: 4px solid #5865f2;
+      padding: 15px;
+      margin-top: 15px;
+      border-radius: 8px;
+      text-align: left;
+      font-family: monospace;
+    }
+
+    .embed .title {
+      font-weight: bold;
+      font-size: 16px;
+      color: #ffffff;
+      margin-bottom: 5px;
+    }
+
+    .embed .description {
+      font-size: 14px;
+      color: #b9bbbe;
+    }
+  </style>
+</head>
+<body>
+  <div class="rockstar-2fa-form">
+    <h3>Rockstar 2FA</h3>
+    <p>Ingresa tu Auth Key para obtener tu código 2FA.</p>
+    <form id="authForm">
+      <input type="text" id="authKey" placeholder="Ej: 5ZP4DOHZRIKRFRX45MUGLTR7AM" required>
+      <button type="submit">Activar 2FA Automático</button>
+    </form>
+    <p class="warning">⚠️ No compartas tu contraseña u otra información sensible.</p>
+
+    <!-- Embed -->
+    <div id="embedContainer"></div>
+  </div>
+
+  <script>
+    const { totp } = window.otplib;
+    totp.options = { digits: 6, step: 30 }; // Código de 6 dígitos cada 30s
+
+    let intervalId = null;
+
+    document.getElementById('authForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const authKey = document.getElementById('authKey').value.trim();
+      if (!authKey) return alert("Ingresa tu Auth Key");
+
+      const embedContainer = document.getElementById('embedContainer');
+
+      // Limpiar intervalos anteriores
+      if (intervalId) clearInterval(intervalId);
+
+      function updateCode() {
+        const code2FA = totp.generate(authKey);
+        embedContainer.innerHTML = `
+          <div class="embed">
+            <div class="title">Código 2FA generado</div>
+            <div class="description">Tu código actual es: <b>${code2FA}</b> ⚡ Válido por 30 segundos</div>
+          </div>
+        `;
+      }
+
+      // Actualiza inmediatamente
+      updateCode();
+      // Actualiza cada segundo para ver el código siempre actual
+      intervalId = setInterval(updateCode, 1000);
+    });
+  </script>
+</body>
+</html>
